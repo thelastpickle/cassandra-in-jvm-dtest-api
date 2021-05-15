@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Versions
+public final class Versions
 {
     private static final Logger logger = LoggerFactory.getLogger(Versions.class);
 
@@ -153,7 +153,7 @@ public class Versions
 
     private final Map<Major, List<Version>> versions;
 
-    public Versions(Map<Major, List<Version>> versions)
+    private Versions(Map<Major, List<Version>> versions)
     {
         this.versions = versions;
     }
@@ -177,19 +177,22 @@ public class Versions
         final String dtestJarDirectory = System.getProperty(PROPERTY_PREFIX + "test.dtest_jar_path", "build");
         final File sourceDirectory = new File(dtestJarDirectory);
         logger.info("Looking for dtest jars in " + sourceDirectory.getAbsolutePath());
-        final Pattern pattern = Pattern.compile("dtest-(?<fullversion>(\\d+)\\.(\\d+)(\\.\\d+)?(\\.\\d+)?)([~\\-]\\w[.\\w]*(?:\\-\\w[.\\w]*)*)?(\\+[.\\w]+)?\\.jar");
+        final Pattern pattern = Pattern.compile("dtest-(?<fullversion>(\\d+)\\.(\\d+)(\\.|-alpha|-beta|-rc)([0-9]+)?(\\.\\d+)?)([~\\-]\\w[.\\w]*(?:\\-\\w[.\\w]*)*)?(\\+[.\\w]+)?\\.jar");
         final Map<Major, List<Version>> versions = new HashMap<>();
         for (Major major : Major.values())
             versions.put(major, new ArrayList<>());
 
-        for (File file : sourceDirectory.listFiles())
+        if (sourceDirectory.exists())
         {
-            Matcher m = pattern.matcher(file.getName());
-            if (!m.matches())
-                continue;
-            String version = m.group(1);
-            Major major = Major.fromFull(version);
-            versions.get(major).add(new Version(major, version, new URL[]{ toURL(file) }));
+            for (File file : sourceDirectory.listFiles())
+            {
+                Matcher m = pattern.matcher(file.getName());
+                if (!m.matches())
+                    continue;
+                String version = m.group(1);
+                Major major = Major.fromFull(version);
+                versions.get(major).add(new Version(major, version, new URL[]{ toURL(file) }));
+            }
         }
 
         for (Map.Entry<Major, List<Version>> e : versions.entrySet())
@@ -203,7 +206,7 @@ public class Versions
         return new Versions(versions);
     }
 
-    public static URL toURL(File file)
+    private static URL toURL(File file)
     {
         try
         {
