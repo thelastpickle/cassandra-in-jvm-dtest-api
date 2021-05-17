@@ -13,7 +13,7 @@
  */
 package org.apache.cassandra.distributed.shared;
 
-import org.junit.jupiter.api.Assertions;
+import com.vdurmont.semver4j.Semver;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +30,8 @@ public class VersionsTest
     @Test
     public void testGetLatest()
     {
-        Versions.find().getLatest(Versions.Major.v22);
+        Versions.find().getLatest(new Semver("2.2.0"));
+        Versions.find().getLatest(new Semver("2.2", Semver.SemverType.LOOSE));
     }
 
     @Test
